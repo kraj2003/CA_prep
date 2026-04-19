@@ -5,6 +5,8 @@ import { generateRevisionPackage } from "@/lib/ai";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { canGenerate } from "@/lib/usage";
 
+export const maxDuration = 60; // Allow up to 60s for AI generation
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
@@ -15,7 +17,11 @@ export async function POST(req: Request) {
     const access = await canGenerate(userId);
     if (!access.allowed) {
       return NextResponse.json(
-        { error: "Free limit reached. Upgrade to Pro for unlimited generations." },
+        {
+          error: "Free limit reached",
+          message: "You've used all 3 free packages this month. Upgrade to Pro for unlimited generations.",
+          upgradeUrl: "/pricing",
+        },
         { status: 403 },
       );
     }
@@ -23,21 +29,34 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const topic = String(formData.get("topic") ?? "").trim();
     const promptTweak = String(formData.get("promptTweak") ?? "").trim();
+    const caLevel = String(formData.get("caLevel") ?? "").trim();
+    const paper = String(formData.get("paper") ?? "").trim();
     const file = formData.get("file");
 
-    if (!topic && !(file instanceof File)) {
-      return NextResponse.json({ error: "Enter a topic or upload notes." }, { status: 400 });
+    if (!topic && !(file instanceof File && file.size > 0)) {
+      return NextResponse.json({ error: "Please enter a topic or upload notes." }, { status: 400 });
     }
 
     let sourceText = "";
     if (file instanceof File && file.size > 0) {
-      sourceText = await extractTextFromFile(file);
+      try {
+        sourceText = await extractTextFromFile(file);
+      } catch (e) {
+        return NextResponse.json(
+          { error: `Could not read your file: ${e instanceof Error ? e.message : "Unknown error"}` },
+          { status: 400 },
+        );
+      }
     }
 
+    const effectiveTopic = topic || "Topic from uploaded notes";
+
     const data = await generateRevisionPackage({
-      topic: topic || "Notes-derived topic",
-      notesText: sourceText,
-      promptTweak,
+      topic: effectiveTopic,
+      notesText: sourceText || undefined,
+      promptTweak: promptTweak || undefined,
+      caLevel: caLevel || undefined,
+      paper: paper || undefined,
     });
 
     const supabase = getSupabaseAdmin();
@@ -45,7 +64,7 @@ export async function POST(req: Request) {
       .from("revisions")
       .insert({
         user_id: userId,
-        topic: topic || "Uploaded Notes Revision",
+        topic: effectiveTopic,
         source_text: sourceText || null,
         package_json: data,
       })
@@ -54,13 +73,23 @@ export async function POST(req: Request) {
 
     if (error || !inserted) {
       console.error("Supabase insert error:", error);
-      return NextResponse.json({ error: "Could not save revision.", details: error?.message }, { status: 500 });
+      // Still return the data even if save fails
+      return NextResponse.json({
+        revisionId: null,
+        data,
+        topic: effectiveTopic,
+        warning: "Package generated but could not be saved. Please copy what you need.",
+      });
     }
 
-    return NextResponse.json({ revisionId: inserted.id, data });
+    return NextResponse.json({ revisionId: inserted.id, data, topic: effectiveTopic });
   } catch (error) {
+    console.error("Generation error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Generation failed." },
+      {
+        error: "Generation failed",
+        message: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
+      },
       { status: 500 },
     );
   }
