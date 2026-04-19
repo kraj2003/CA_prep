@@ -1,7 +1,7 @@
 export type Mcq = {
   question: string;
   options: [string, string, string, string];
-  correctAnswer: string;
+  answer: string;
   explanation: string;
 };
 
@@ -11,13 +11,13 @@ export type DescriptiveQuestion = {
 };
 
 export type RevisionPackage = {
-  revisionNotes: string[];
+  revisionNotes: string;
   mcqs: Mcq[];
   descriptiveQuestions: DescriptiveQuestion[];
   commonMistakes: string[];
-  answerWritingApproach: string[];
-  howTopicIsTested: string[];
-  keyFocusAreas: string[];
+  answerWritingApproach: string;
+  howTopicIsTested: string;
+  keyFocusAreas: string;
   quickRevisionPointers: string[];
 };
 

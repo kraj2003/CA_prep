@@ -4,8 +4,8 @@ import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "ReviseCA - The CA Exam Revision Engine",
-  description: "Generate ICAI-ready revision packages in one click.",
+  title: "ReviseCA - The Ultimate CA Exam Revision Engine",
+  description: "One input to an ICAI-perfect 8-section revision package for CA 2026 attempts.",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className="h-full antialiased">
-        <body className="min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+        <body className="min-h-full bg-gradient-to-b from-white to-[#F5F8FF] text-zinc-900 dark:from-zinc-950 dark:to-zinc-900 dark:text-zinc-100">
           <SiteHeader />
           {children}
         </body>

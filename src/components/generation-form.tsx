@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, RotateCw } from "lucide-react";
+import { Loader2, RotateCw, UploadCloud, WandSparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,13 +14,17 @@ type GenerateResponse = {
   data: RevisionPackage;
 };
 
-export function GenerationForm() {
-  const [topic, setTopic] = useState("");
+export function GenerationForm({ initialTopic = "" }: { initialTopic?: string }) {
+  const [topic, setTopic] = useState(initialTopic);
   const [promptTweak, setPromptTweak] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function handleFileInput(nextFile: File | null) {
+    setFile(nextFile);
+  }
 
   async function onGenerate() {
     setError(null);
@@ -47,9 +51,12 @@ export function GenerationForm() {
 
   return (
     <div className="space-y-5">
-      <Card>
+      <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800">
         <CardHeader>
-          <CardTitle>Generate Exam-Ready Package</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <WandSparkles className="h-5 w-5 text-[#0052CC]" />
+            Generate Exam-Ready Package
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -67,7 +74,22 @@ export function GenerationForm() {
             <label htmlFor="file" className="text-sm font-medium">
               Upload Notes (PDF / TXT / DOCX)
             </label>
-            <Input id="file" type="file" accept=".pdf,.txt,.docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <label
+              htmlFor="file"
+              className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#0052CC]/50 bg-[#0052CC]/5 p-6 text-sm text-zinc-600 transition hover:bg-[#0052CC]/10 dark:text-zinc-300"
+            >
+              <span className="flex items-center gap-2">
+                <UploadCloud className="h-4 w-4 text-[#0052CC]" />
+                {file ? file.name : "Drag/drop or click to upload notes"}
+              </span>
+            </label>
+            <Input
+              id="file"
+              type="file"
+              accept=".pdf,.txt,.docx"
+              className="hidden"
+              onChange={(e) => handleFileInput(e.target.files?.[0] ?? null)}
+            />
           </div>
           <div className="space-y-2">
             <label htmlFor="tweak" className="text-sm font-medium">
@@ -105,7 +127,7 @@ export function GenerationForm() {
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
         </CardContent>
       </Card>
-      {result ? <ResultTabs data={result.data} /> : null}
+      {result ? <ResultTabs data={result.data} revisionId={result.revisionId} /> : null}
     </div>
   );
 }

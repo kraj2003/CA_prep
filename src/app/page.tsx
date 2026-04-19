@@ -9,11 +9,11 @@ export default function Home() {
     <main className="mx-auto w-full max-w-6xl px-4 py-14">
       <section className="grid gap-8 md:grid-cols-2 md:items-center">
         <div className="space-y-6">
-          <p className="inline-block rounded-full bg-[#D4B24C]/15 px-3 py-1 text-xs font-semibold text-[#A17700]">
+          <p className="inline-block rounded-full bg-[#FFD700]/20 px-3 py-1 text-xs font-semibold text-[#A17700]">
             Built for ICAI Foundation, Inter & Final
           </p>
-          <h1 className="text-4xl font-bold tracking-tight text-[#1847A4] md:text-5xl">
-            ReviseCA: One-click exam-ready revision packages
+          <h1 className="text-4xl font-bold tracking-tight text-[#0052CC] md:text-5xl">
+            ReviseCA: The Ultimate CA Exam Revision Engine for 2026
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-300">
             Type a topic or upload notes, then instantly get structured revision notes, ICAI-style MCQs,
@@ -39,7 +39,7 @@ export default function Home() {
             </Button>
           </div>
         </div>
-        <Card>
+        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800">
           <CardHeader>
             <CardTitle>What you get every generation</CardTitle>
           </CardHeader>
@@ -59,6 +59,20 @@ export default function Home() {
               </p>
             ))}
           </CardContent>
+        </Card>
+      </section>
+      <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <Card className="border-[#0052CC]/20 bg-[#0052CC]/5">
+          <CardHeader><CardTitle>Free Tier</CardTitle></CardHeader>
+          <CardContent>3 generations/month for topic sprint practice.</CardContent>
+        </Card>
+        <Card className="border-[#FFD700]/30 bg-[#FFD700]/10">
+          <CardHeader><CardTitle>Paid Tier</CardTitle></CardHeader>
+          <CardContent>Unlimited generations, priority quality and export-ready PDF.</CardContent>
+        </Card>
+        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800">
+          <CardHeader><CardTitle>Last 30 Days Focus</CardTitle></CardHeader>
+          <CardContent>Exam-style output engineered for direct mark gain.</CardContent>
         </Card>
       </section>
     </main>

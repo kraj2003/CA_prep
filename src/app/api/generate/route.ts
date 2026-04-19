@@ -53,7 +53,8 @@ export async function POST(req: Request) {
       .single();
 
     if (error || !inserted) {
-      return NextResponse.json({ error: "Could not save revision." }, { status: 500 });
+      console.error("Supabase insert error:", error);
+      return NextResponse.json({ error: "Could not save revision.", details: error?.message }, { status: 500 });
     }
 
     return NextResponse.json({ revisionId: inserted.id, data });

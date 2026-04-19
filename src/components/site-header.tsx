@@ -21,6 +21,9 @@ export function SiteHeader() {
             <Button asChild variant="ghost">
               <Link href="/history">My Revisions</Link>
             </Button>
+            <Button asChild variant="ghost">
+              <Link href="/pricing">Pricing</Link>
+            </Button>
             <UserButton />
           </SignedIn>
           <SignedOut>

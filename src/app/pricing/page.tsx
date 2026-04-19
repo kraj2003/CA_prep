@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RazorpayCheckoutButton } from "@/components/razorpay-checkout";
 
 export default async function PricingPage() {
   const { userId } = await auth();
@@ -34,18 +34,9 @@ export default async function PricingPage() {
             <p className="text-3xl font-bold">₹499/month</p>
             <p>Unlimited generations + priority</p>
             <p>PDF export for all packages</p>
-            <form action="/api/checkout/subscription" method="POST">
-              <input type="hidden" name="userId" value={userId ?? ""} />
-              <Button type="submit" disabled={!userId}>
-                Start Subscription
-              </Button>
-            </form>
-            <form action="/api/checkout/one-time" method="POST">
-              <input type="hidden" name="userId" value={userId ?? ""} />
-              <Button type="submit" variant="outline" disabled={!userId}>
-                Buy Single Package (₹99)
-              </Button>
-            </form>
+            <p className="text-sm text-zinc-500">Also available: ₹99 one-time booster unlock.</p>
+            <RazorpayCheckoutButton kind="subscription" userId={userId ?? ""} disabled={!userId} />
+            <RazorpayCheckoutButton kind="one-time" userId={userId ?? ""} disabled={!userId} />
           </CardContent>
         </Card>
       </div>

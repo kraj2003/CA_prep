@@ -2,29 +2,35 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { RevisionPackage } from "@/lib/types";
 
-export const REVISE_CA_SYSTEM_PROMPT = `You are ReviseCA, the most accurate and exam-focused CA revision engine in India. Your only job is to convert any CA topic into a perfect ICAI-exam-ready package.
-Rules (never break these):
-
-You are an expert CA Final rank holder + ICAI examiner perspective.
-Output MUST be in clean JSON format with these exact keys: revisionNotes, mcqs, descriptiveQuestions, commonMistakes, answerWritingApproach, howTopicIsTested, keyFocusAreas, quickRevisionPointers.
-All content must be 100% accurate to latest ICAI syllabus and past papers.
-Make it concise but comprehensive - students are in last 30 days, so no fluff.
-MCQs must be exactly ICAI style (tricky, conceptual).
-Always include practical exam tips.
-Use professional, motivating tone.`;
+export const REVISE_CA_SYSTEM_PROMPT = `You are ReviseCA, India’s most accurate and exam-focused CA revision engine (2026 new syllabus).
+You are a CA Final All-India Rank 1 + ICAI examiner.
+Convert any topic into a perfect, ready-to-score ICAI exam package.
+Output ONLY valid JSON with these exact keys:
+{
+  "revisionNotes": string,
+  "mcqs": [array of at least 5 objects with {question: string, options: [4 strings], answer: string, explanation: string}],
+  "descriptiveQuestions": [array of at least 3 objects with {question: string, modelAnswer: string}],
+  "commonMistakes": [array of at least 4 strings],
+  "answerWritingApproach": string,
+  "howTopicIsTested": string,
+  "keyFocusAreas": string,
+  "quickRevisionPointers": [array of at least 8 strings]
+}
+CRITICAL: Generate MINIMUM quantities specified. Never skip fields.
+Rules: Be concise but comprehensive. Last-30-days focused. 100% accurate to latest ICAI syllabus and past papers. No fluff. Professional yet motivating tone. Never break JSON structure. Return valid JSON ONLY.`;
 
 const outputSchema = z.object({
-  revisionNotes: z.array(z.string()).min(8),
+  revisionNotes: z.string(),
   mcqs: z
     .array(
       z.object({
         question: z.string(),
         options: z.tuple([z.string(), z.string(), z.string(), z.string()]),
-        correctAnswer: z.string(),
+        answer: z.string(),
         explanation: z.string(),
       }),
     )
-    .min(8)
+    .min(5)
     .max(10),
   descriptiveQuestions: z
     .array(
@@ -33,13 +39,13 @@ const outputSchema = z.object({
         modelAnswer: z.string(),
       }),
     )
-    .min(5)
+    .min(3)
     .max(7),
-  commonMistakes: z.array(z.string()).min(5),
-  answerWritingApproach: z.array(z.string()).min(5),
-  howTopicIsTested: z.array(z.string()).min(5),
-  keyFocusAreas: z.array(z.string()).min(5),
-  quickRevisionPointers: z.array(z.string()).min(10).max(15),
+  commonMistakes: z.array(z.string()).min(4),
+  answerWritingApproach: z.string(),
+  howTopicIsTested: z.string(),
+  keyFocusAreas: z.string(),
+  quickRevisionPointers: z.array(z.string()).min(8).max(15),
 });
 
 export async function generateRevisionPackage({
@@ -51,7 +57,10 @@ export async function generateRevisionPackage({
   notesText?: string;
   promptTweak?: string;
 }): Promise<RevisionPackage> {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY ?? process.env.OPENAI_API_KEY,
+    baseURL: process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1",
+  });
   const userPrompt = [
     `Topic: ${topic}`,
     notesText ? `Uploaded Notes:\n${notesText.slice(0, 10000)}` : "Uploaded Notes: None",
@@ -61,75 +70,27 @@ export async function generateRevisionPackage({
     .filter(Boolean)
     .join("\n\n");
 
-  const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    input: [
+  const response = await client.chat.completions.create({
+    model: process.env.GROQ_MODEL ?? process.env.OPENAI_MODEL ?? "llama-3.3-70b-versatile",
+    messages: [
       { role: "system", content: REVISE_CA_SYSTEM_PROMPT },
       { role: "user", content: userPrompt },
     ],
-    text: {
-      format: {
-        type: "json_schema",
-        name: "revision_package",
-        strict: true,
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "revisionNotes",
-            "mcqs",
-            "descriptiveQuestions",
-            "commonMistakes",
-            "answerWritingApproach",
-            "howTopicIsTested",
-            "keyFocusAreas",
-            "quickRevisionPointers",
-          ],
-          properties: {
-            revisionNotes: { type: "array", items: { type: "string" } },
-            mcqs: {
-              type: "array",
-              items: {
-                type: "object",
-                additionalProperties: false,
-                required: ["question", "options", "correctAnswer", "explanation"],
-                properties: {
-                  question: { type: "string" },
-                  options: {
-                    type: "array",
-                    minItems: 4,
-                    maxItems: 4,
-                    items: { type: "string" },
-                  },
-                  correctAnswer: { type: "string" },
-                  explanation: { type: "string" },
-                },
-              },
-            },
-            descriptiveQuestions: {
-              type: "array",
-              items: {
-                type: "object",
-                additionalProperties: false,
-                required: ["question", "modelAnswer"],
-                properties: {
-                  question: { type: "string" },
-                  modelAnswer: { type: "string" },
-                },
-              },
-            },
-            commonMistakes: { type: "array", items: { type: "string" } },
-            answerWritingApproach: { type: "array", items: { type: "string" } },
-            howTopicIsTested: { type: "array", items: { type: "string" } },
-            keyFocusAreas: { type: "array", items: { type: "string" } },
-            quickRevisionPointers: { type: "array", items: { type: "string" } },
-          },
-        },
-      },
-    },
+    temperature: 0.7,
   });
 
-  const jsonText = response.output_text;
-  const parsed = outputSchema.parse(JSON.parse(jsonText));
+  const jsonText = response.choices[0].message.content;
+  if (!jsonText) {
+    throw new Error("No response content from model");
+  }
+  
+  // Extract JSON from markdown code blocks if present
+  let cleanJson = jsonText;
+  const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (jsonMatch) {
+    cleanJson = jsonMatch[1].trim();
+  }
+  
+  const parsed = outputSchema.parse(JSON.parse(cleanJson));
   return parsed;
 }

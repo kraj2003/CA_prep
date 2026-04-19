@@ -5,20 +5,18 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("reviseca-theme") === "dark";
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("reviseca-theme");
-    const shouldDark = saved === "dark";
-    document.documentElement.classList.toggle("dark", shouldDark);
-    setIsDark(shouldDark);
-  }, []);
+    document.documentElement.classList.toggle("dark", isDark);
+    localStorage.setItem("reviseca-theme", isDark ? "dark" : "light");
+  }, [isDark]);
 
   function toggleTheme() {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem("reviseca-theme", next ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", next);
+    setIsDark((prev) => !prev);
   }
 
   return (

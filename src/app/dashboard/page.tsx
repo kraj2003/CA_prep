@@ -18,10 +18,11 @@ export default async function DashboardPage() {
 
   const { data: latest } = await supabase
     .from("revisions")
-    .select("id, topic, created_at")
+    .select("id, topic, created_at, is_revised")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(5);
+  const revisedCount = latest?.filter((item) => item.is_revised).length ?? 0;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
@@ -45,6 +46,12 @@ export default async function DashboardPage() {
             <CardDescription>Resets monthly</CardDescription>
           </CardHeader>
           <CardContent className="text-3xl font-bold">{usage.isPaid ? "Unlimited" : usage.remaining}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Revised This Week</CardTitle>
+          </CardHeader>
+          <CardContent className="text-3xl font-bold">{revisedCount}</CardContent>
         </Card>
       </div>
       <Card>

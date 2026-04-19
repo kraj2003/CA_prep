@@ -10,13 +10,13 @@ export async function canGenerate(userId: string) {
 
   const { data: subscription } = await supabase
     .from("subscriptions")
-    .select("status")
+    .select("status, plan")
     .eq("user_id", userId)
     .maybeSingle();
 
   const isPaid = subscription?.status === "active";
   if (isPaid) {
-    return { allowed: true, remaining: -1, isPaid };
+    return { allowed: true, remaining: -1, isPaid, plan: subscription?.plan ?? "pro" };
   }
 
   const { count } = await supabase
@@ -27,5 +27,5 @@ export async function canGenerate(userId: string) {
 
   const used = count ?? 0;
   const remaining = Math.max(FREE_MONTHLY_LIMIT - used, 0);
-  return { allowed: remaining > 0, remaining, isPaid: false };
+  return { allowed: remaining > 0, remaining, isPaid: false, plan: "free" };
 }
