@@ -61,11 +61,27 @@ const TWEAK_PRESETS = [
 
 const SECTION_CONFIG = [
   {
+    key: "topicSummary" as const,
+    icon: BookOpen,
+    label: "Topic Summary",
+    color: "blue",
+    desc: "One-line overview",
+    badge: "Quick",
+  },
+  {
+    key: "examRelevance" as const,
+    icon: Flame,
+    label: "Exam Relevance",
+    color: "amber",
+    desc: "HIGH/MEDIUM + papers",
+    badge: "Priority",
+  },
+  {
     key: "revisionNotes" as const,
     icon: BookOpen,
     label: "Revision Notes",
     color: "blue",
-    desc: "Complete theory with examples",
+    desc: "Complete theory with ## headings",
     badge: "Core",
   },
   {
@@ -206,18 +222,18 @@ function SectionRevisedToggle({
 function MarkdownRenderer({ content }: { content: string }) {
   const lines = content.split("\n");
   return (
-    <div className="space-y-1.5 text-sm leading-relaxed">
+    <div className="space-y-2 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
       {lines.map((line, i) => {
         if (line.startsWith("## ")) {
           return (
-            <h3 key={i} className="mt-4 mb-1 text-base font-bold text-zinc-900 dark:text-white first:mt-0">
+            <h3 key={i} className="mt-6 mb-3 text-base font-bold text-[#1a365d] dark:text-blue-200 border-b border-zinc-200 dark:border-zinc-700 pb-1 first:mt-0">
               {line.slice(3)}
             </h3>
           );
         }
         if (line.startsWith("# ")) {
           return (
-            <h2 key={i} className="mt-4 mb-2 text-lg font-black text-[#0052CC] first:mt-0">
+            <h2 key={i} className="mt-6 mb-3 text-lg font-black text-[#1a365d] dark:text-blue-200 first:mt-0">
               {line.slice(2)}
             </h2>
           );
@@ -225,8 +241,8 @@ function MarkdownRenderer({ content }: { content: string }) {
         if (line.startsWith("• ") || line.startsWith("- ")) {
           const text = line.slice(2);
           return (
-            <div key={i} className="flex gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#0052CC]" />
+            <div key={i} className="flex gap-3 ml-2">
+              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#1a365d]" />
               <span className="text-zinc-700 dark:text-zinc-300" dangerouslySetInnerHTML={{ __html: renderInline(text) }} />
             </div>
           );
@@ -235,8 +251,8 @@ function MarkdownRenderer({ content }: { content: string }) {
           const match = line.match(/^(\d+)\.\s(.+)/);
           if (match) {
             return (
-              <div key={i} className="flex gap-2">
-                <span className="flex-shrink-0 font-bold text-[#0052CC]">{match[1]}.</span>
+              <div key={i} className="flex gap-2 ml-2">
+                <span className="flex-shrink-0 font-bold text-[#1a365d]">{match[1]}.</span>
                 <span className="text-zinc-700 dark:text-zinc-300" dangerouslySetInnerHTML={{ __html: renderInline(match[2]) }} />
               </div>
             );
@@ -244,12 +260,12 @@ function MarkdownRenderer({ content }: { content: string }) {
         }
         if (line.startsWith("❌") || line.startsWith("✅") || line.startsWith("🔑") || line.startsWith("⚠️")) {
           return (
-            <div key={i} className="text-zinc-700 dark:text-zinc-300" dangerouslySetInnerHTML={{ __html: renderInline(line) }} />
+            <div key={i} className="text-zinc-700 dark:text-zinc-300 ml-2" dangerouslySetInnerHTML={{ __html: renderInline(line) }} />
           );
         }
-        if (line.trim() === "") return <div key={i} className="h-2" />;
+        if (line.trim() === "") return <div key={i} className="h-3" />;
         return (
-          <p key={i} className="text-zinc-700 dark:text-zinc-300" dangerouslySetInnerHTML={{ __html: renderInline(line) }} />
+          <p key={i} className="text-zinc-700 dark:text-zinc-300 ml-2" dangerouslySetInnerHTML={{ __html: renderInline(line) }} />
         );
       })}
     </div>
@@ -267,8 +283,10 @@ function renderInline(text: string): string {
 
 function RevisionNotesSection({ data }: { data: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-      <MarkdownRenderer content={data} />
+    <div className="rounded-lg border border-zinc-300 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="border-l-4 border-[#1a365d] pl-4">
+        <MarkdownRenderer content={data} />
+      </div>
     </div>
   );
 }
@@ -289,69 +307,59 @@ function McqSection({ data }: { data: RevisionPackage["mcqs"] }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {data.map((mcq, i) => (
-        <div key={i} className="rounded-xl border border-zinc-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="p-5">
-            <div className="mb-3 flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052CC] text-xs font-bold text-white">
-                  {i + 1}
-                </span>
-                <span className={cn("rounded-full border px-2 py-0.5 text-xs font-semibold", diffColor[mcq.difficulty ?? "Medium"])}>
-                  {mcq.difficulty ?? "Medium"}
-                </span>
-              </div>
-              {mcq.examTip && (
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800">
-                  💡 {mcq.examTip}
-                </span>
-              )}
-            </div>
-            <p className="mb-4 font-semibold text-zinc-900 dark:text-white leading-snug">{mcq.question}</p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {mcq.options.map((opt, j) => {
-                const letter = String.fromCharCode(65 + j);
-                const isAnswer = revealed.has(i) && mcq.answer.includes(letter) || revealed.has(i) && mcq.answer === opt;
-                return (
-                  <div
-                    key={j}
-                    className={cn(
-                      "rounded-lg border p-3 text-sm transition-colors",
-                      revealed.has(i) && (mcq.answer.includes(letter) || mcq.answer === opt)
-                        ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200"
-                        : "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-                    )}
-                  >
-                    <span className="mr-2 font-bold">{letter}.</span>
-                    {opt}
-                    {revealed.has(i) && (mcq.answer.includes(letter) || mcq.answer === opt) && (
-                      <Check className="ml-2 inline h-3 w-3" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+        <div key={i} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="mb-3 flex items-center gap-3">
+            <span className="flex h-5 w-5 items-center justify-center rounded bg-[#1a365d] text-xs font-bold text-white">
+              {i + 1}
+            </span>
+            <span className={cn("rounded border px-2 py-0.5 text-xs font-medium", diffColor[mcq.difficulty ?? "Medium"])}>
+              {mcq.difficulty ?? "Medium"}
+            </span>
+            {mcq.examTip && (
+              <span className="text-xs text-zinc-500">💡 {mcq.examTip}</span>
+            )}
+          </div>
+          <p className="mb-3 font-medium text-zinc-900 dark:text-white">{mcq.question}</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {mcq.options.map((opt, j) => {
+              const letter = String.fromCharCode(65 + j);
+              const isCorrect = revealed.has(i) && (mcq.answer.includes(letter) || mcq.answer === opt);
+              return (
+                <div
+                  key={j}
+                  className={cn(
+                    "rounded border p-2.5 text-sm",
+                    isCorrect
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-200"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+                  )}
+                >
+                  <span className="font-semibold mr-1.5">{letter}.</span>
+                  {opt}
+                  {isCorrect && <Check className="ml-2 inline h-3 w-3" />}
+                </div>
+              );
+            })}
           </div>
           {revealed.has(i) && (
-            <div className="border-t border-zinc-100 bg-emerald-50/50 p-4 dark:border-zinc-800 dark:bg-emerald-900/10">
+            <div className="mt-3 rounded border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-900/20">
               <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-1">
-                ✅ Answer: {mcq.answer}
+                ✓ Answer: {mcq.answer}
               </p>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">{mcq.explanation}</p>
             </div>
           )}
-          <div className="border-t border-zinc-100 px-5 py-3 dark:border-zinc-800">
-            <button
-              onClick={() => toggleReveal(i)}
-              className={cn(
-                "text-sm font-medium transition-colors",
-                revealed.has(i) ? "text-zinc-500 hover:text-zinc-700" : "text-[#0052CC] hover:text-blue-700",
-              )}
-            >
-              {revealed.has(i) ? "Hide Answer" : "Reveal Answer →"}
-            </button>
-          </div>
+          <button
+            onClick={() => toggleReveal(i)}
+            className={cn(
+              "mt-2 text-sm font-medium",
+              revealed.has(i) ? "text-zinc-500" : "text-[#1a365d] dark:text-blue-400",
+            )}
+          >
+            {revealed.has(i) ? "Hide Answer" : "Reveal Answer"}
+          </button>
         </div>
       ))}
     </div>
@@ -368,26 +376,24 @@ function DescriptiveSection({ data }: { data: RevisionPackage["descriptiveQuesti
     });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {data.map((q, i) => (
-        <div key={i} className="rounded-xl border border-zinc-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
+        <div key={i} className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
           <button
             onClick={() => toggle(i)}
-            className="flex w-full items-start justify-between gap-3 p-5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+            className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800"
           >
-            <div className="flex gap-3">
-              <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#0052CC] text-xs font-bold text-white">
+            <div className="flex items-center gap-3">
+              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-[#1a365d] text-xs font-bold text-white">
                 {i + 1}
               </span>
               <div>
-                <p className="font-semibold text-zinc-900 dark:text-white leading-snug">{q.question}</p>
-                <div className="mt-1.5 flex gap-2">
-                  <span className="rounded-full bg-[#0052CC]/10 px-2 py-0.5 text-xs font-medium text-[#0052CC]">
+                <p className="font-medium text-zinc-900 dark:text-white">{q.question}</p>
+                <div className="mt-1 flex gap-2">
+                  <span className="rounded bg-[#1a365d]/10 px-2 py-0.5 text-xs font-medium text-[#1a365d] dark:text-blue-400">
                     {q.marks} Marks
                   </span>
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800">
-                    ⏱ {q.timeAllocation}
-                  </span>
+                  <span className="text-xs text-zinc-500">⏱ {q.timeAllocation}</span>
                 </div>
               </div>
             </div>
@@ -398,22 +404,20 @@ function DescriptiveSection({ data }: { data: RevisionPackage["descriptiveQuesti
             )}
           </button>
           {expanded.has(i) && (
-            <div className="border-t border-zinc-100 dark:border-zinc-800">
-              <div className="p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-xs font-semibold text-[#0052CC] uppercase tracking-wider">Model Answer</p>
-                  <CopyButton text={q.modelAnswer} />
-                </div>
-                <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
-                  <MarkdownRenderer content={q.modelAnswer} />
-                </div>
-                {q.answerTips && (
-                  <div className="mt-3 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-                    <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-                    <p className="text-xs text-amber-800 dark:text-amber-200">{q.answerTips}</p>
-                  </div>
-                )}
+            <div className="border-t border-zinc-100 p-4 dark:border-zinc-700">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs font-semibold text-[#1a365d] uppercase tracking-wider dark:text-blue-400">Model Answer</p>
+                <CopyButton text={q.modelAnswer} />
               </div>
+              <div className="rounded border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                <MarkdownRenderer content={q.modelAnswer} />
+              </div>
+              {q.answerTips && (
+                <div className="mt-3 flex gap-2 rounded border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+                  <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                  <p className="text-xs text-amber-800 dark:text-amber-200">{q.answerTips}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -428,11 +432,17 @@ function MistakesSection({ data }: { data: string[] }) {
       {data.map((m, i) => {
         const [wrong, right] = m.includes("→") ? m.split("→") : [m, ""];
         return (
-          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <MarkdownRenderer content={wrong.trim()} />
+          <div key={i} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="flex gap-2">
+              <span className="text-red-500">✗</span>
+              <MarkdownRenderer content={wrong.trim()} />
+            </div>
             {right && (
-              <div className="mt-2 rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20">
-                <MarkdownRenderer content={"✅ " + right.trim()} />
+              <div className="mt-2 ml-4 rounded border border-emerald-200 bg-emerald-50 p-2.5 dark:border-emerald-800 dark:bg-emerald-900/20">
+                <div className="flex gap-2">
+                  <span className="text-emerald-600">✓</span>
+                  <MarkdownRenderer content={right.trim()} />
+                </div>
               </div>
             )}
           </div>
@@ -448,9 +458,9 @@ function PointersSection({ data }: { data: string[] }) {
       {data.map((p, i) => (
         <div
           key={i}
-          className="flex gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 dark:border-zinc-800 dark:bg-zinc-900"
+          className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900"
         >
-          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-[#1a365d] text-xs font-bold text-white">
             {i + 1}
           </span>
           <p className="text-sm text-zinc-700 dark:text-zinc-300" dangerouslySetInnerHTML={{ __html: renderInline(p) }} />
@@ -493,6 +503,8 @@ function SectionAccordion({
 
   const renderContent = () => {
     switch (config.key) {
+      case "topicSummary":
+      case "examRelevance":
       case "revisionNotes": return <RevisionNotesSection data={data as string} />;
       case "mcqs": return <McqSection data={data as RevisionPackage["mcqs"]} />;
       case "descriptiveQuestions": return <DescriptiveSection data={data as RevisionPackage["descriptiveQuestions"]} />;
@@ -505,33 +517,32 @@ function SectionAccordion({
   const itemCount = Array.isArray(data) ? data.length : null;
 
   return (
-    <div className={cn("overflow-hidden rounded-2xl border transition-all duration-200", open ? colors.border : "border-zinc-200 dark:border-zinc-800")}>
+    <div className={cn("overflow-hidden rounded-lg border transition-all duration-200", open ? colors.border : "border-zinc-200 dark:border-zinc-700")}>
       <button
         onClick={() => setOpen((p) => !p)}
         className={cn(
-          "flex w-full items-center justify-between gap-3 p-4 text-left transition-colors",
-          open ? colors.bg : "bg-white hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/50",
+          "flex w-full items-center justify-between gap-3 p-3.5 text-left transition-colors",
+          open ? colors.bg : "bg-white hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800",
         )}
       >
         <div className="flex items-center gap-3">
-          <div className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl", open ? colors.bg : "bg-zinc-100 dark:bg-zinc-800")}>
+          <div className={cn("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded", open ? colors.bg : "bg-zinc-100 dark:bg-zinc-800")}>
             <Icon className={cn("h-4 w-4", open ? colors.icon : "text-zinc-500")} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className={cn("font-semibold", open ? colors.text : "text-zinc-900 dark:text-white")}>
+              <span className={cn("font-semibold text-sm", open ? colors.text : "text-zinc-900 dark:text-white")}>
                 {config.label}
               </span>
-              <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", open ? colors.badge : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800")}>
+              <span className={cn("rounded px-2 py-0.5 text-xs font-medium", open ? colors.badge : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800")}>
                 {config.badge}
               </span>
               {itemCount !== null && (
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-400 dark:bg-zinc-800">
-                  {itemCount} items
+                <span className="text-xs text-zinc-400">
+                  ({itemCount})
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400">{config.desc}</p>
           </div>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
@@ -541,18 +552,18 @@ function SectionAccordion({
               <CopyButton text={getSectionText()} />
             </>
           )}
-          <div className={cn("flex h-7 w-7 items-center justify-center rounded-full transition-colors", open ? colors.bg : "bg-zinc-100 dark:bg-zinc-800")}>
+          <div className={cn("flex h-6 w-6 items-center justify-center rounded transition-colors", open ? colors.bg : "bg-zinc-100 dark:bg-zinc-800")}>
             {open ? (
-              <ChevronUp className={cn("h-4 w-4", open ? colors.icon : "text-zinc-500")} />
+              <ChevronUp className={cn("h-3.5 w-3.5", open ? colors.icon : "text-zinc-500")} />
             ) : (
-              <ChevronDown className="h-4 w-4 text-zinc-500" />
+              <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
             )}
           </div>
         </div>
       </button>
 
       {open && (
-        <div className="border-t border-zinc-100 p-4 dark:border-zinc-800">
+        <div className="border-t border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
           {renderContent()}
         </div>
       )}
@@ -641,48 +652,57 @@ function ResultHeader({
   regenLoading: boolean;
 }) {
   return (
-    <div className="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-blue-50 dark:border-emerald-800 dark:from-emerald-900/20 dark:to-blue-900/20">
-      <div className="p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+    <div className="mb-6 overflow-hidden rounded-lg border border-zinc-300 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="border-b border-zinc-200 bg-[#1a365d] px-6 py-4 dark:bg-[#0f2942]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <CheckCircle2 className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-white">
+              REVISECA — ICAI SYLLABUS 2026
+            </span>
           </div>
-          <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-            Your Exam-Ready Package is Ready!
+          <span className="rounded bg-white/20 px-3 py-1 text-xs font-medium text-white">
+            {result.data.examRelevance?.split("—")[0] || "REVISION PACKAGE"}
           </span>
         </div>
-
-        <h2 className="mb-1 text-xl font-black text-zinc-900 dark:text-white">
+      </div>
+      
+      <div className="p-6">
+        <h2 className="mb-2 text-2xl font-black text-zinc-900 dark:text-white">
           {result.topic}
         </h2>
 
         {result.data.topicSummary && (
-          <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">{result.data.topicSummary}</p>
+          <p className="mb-4 text-base text-zinc-600 dark:text-zinc-400 italic border-l-4 border-[#1a365d] pl-4">
+            {result.data.topicSummary}
+          </p>
         )}
 
         {result.data.examRelevance && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/20">
+          <div className="mb-5 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20">
             <Flame className="h-4 w-4 flex-shrink-0 text-amber-600" />
-            <p className="text-xs font-medium text-amber-800 dark:text-amber-300">{result.data.examRelevance}</p>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">{result.data.examRelevance}</p>
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {result.revisionId && (
             <a
               href={`/api/export-pdf?revisionId=${result.revisionId}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0052CC] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-[#0052CC]/25 transition-transform hover:scale-[1.02] hover:bg-blue-700"
+              className="inline-flex items-center gap-2 rounded-md bg-[#1a365d] px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0f2942] dark:bg-blue-700 dark:hover:bg-blue-800"
             >
               <Download className="h-4 w-4" />
-              Export Beautiful PDF
+              Export PDF
             </a>
           )}
           {result.revisionId && (
             <a
               href={`/history/${result.revisionId}`}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+              className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
             >
               <Save className="h-4 w-4" />
               View Saved
@@ -691,7 +711,7 @@ function ResultHeader({
           <button
             onClick={onRegenerate}
             disabled={regenLoading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
           >
             {regenLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Regenerate
@@ -699,7 +719,7 @@ function ResultHeader({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 divide-x divide-zinc-200 border-t border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+      <div className="grid grid-cols-4 divide-x divide-zinc-200 border-t border-zinc-200 bg-zinc-50 dark:divide-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50">
         {[
           { label: "MCQs", value: result.data.mcqs.length },
           { label: "Questions", value: result.data.descriptiveQuestions.length },
@@ -707,7 +727,7 @@ function ResultHeader({
           { label: "Mistakes", value: result.data.commonMistakes.length },
         ].map(({ label, value }) => (
           <div key={label} className="flex flex-col items-center py-3">
-            <span className="text-xl font-black text-[#0052CC]">{value}</span>
+            <span className="text-xl font-black text-[#1a365d] dark:text-blue-300">{value}</span>
             <span className="text-xs text-zinc-500">{label}</span>
           </div>
         ))}

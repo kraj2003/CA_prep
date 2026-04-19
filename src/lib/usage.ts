@@ -1,8 +1,23 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const FREE_MONTHLY_LIMIT = 3;
+const PREMIUM_EMAIL = "abc@gmail.com";
 
 export async function canGenerate(userId: string) {
+  // Check if user is the premium owner
+  try {
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+    
+    if (email?.toLowerCase() === PREMIUM_EMAIL.toLowerCase()) {
+      return { allowed: true, remaining: -1, isPaid: true, plan: "owner" };
+    }
+  } catch (e) {
+    console.error("Error checking premium user:", e);
+  }
+
   const supabase = getSupabaseAdmin();
   const monthStart = new Date();
   monthStart.setDate(1);

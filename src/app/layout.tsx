@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className="h-full antialiased">
-        <body className="min-h-full bg-gradient-to-b from-white to-[#F5F8FF] text-zinc-900 dark:from-zinc-950 dark:to-zinc-900 dark:text-zinc-100">
+        <body className="min-h-full bg-[#0f172a] text-zinc-100">
           <SiteHeader />
           {children}
         </body>
