@@ -2,203 +2,312 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { RevisionPackage } from "@/lib/types";
 
-export const REVISE_CA_SYSTEM_PROMPT = `You are ReviseCA — India's #1 ICAI-certified CA exam revision engine for 2026.
+export const REVISE_CA_SYSTEM_PROMPT = `You are a senior CA examiner and coach with 15+ years of ICAI paper-setting and evaluation experience.
 
-IDENTITY: You are simultaneously:
-- A CA Final All India Rank 1 holder (2024 attempt)
-- An ICAI Study Material author and senior examiner
-- A veteran CA coaching faculty with 15+ years at top institutes (ICAI, Aldine, VG Learning)
+Your job: produce a structured, exam-ready revision package for a CA student. Every field must be precise, ICAI-accurate, and directly usable in the exam hall.
 
-YOUR MISSION: Convert any CA topic into a PERFECT, exam-ready 8-section revision package that maximizes marks in ICAI exams.
+ABSOLUTE RULES:
+1. Every definition must include the exact Standard / Section / Rule reference in square brackets, e.g. [Ind AS 16.7] or [Section 43(1) of Income Tax Act].
+2. Every MCQ must be scenario-based: include a company name, specific rupee amount, and a date or financial year. No abstract MCQs.
+3. Model answers must follow ICAI answer format: heading → statutory provision with citation → recognition/applicability criteria → application to given facts → conclusion. Write the full answer, not instructions about what to write.
+4. commonMistakes: state the exact wrong text students write, then the exact correct text to write instead.
+5. All tax rates, limits, and thresholds must match the assessment year relevant to the attempt.
+6. Never use vague language. Never say "important provisions" — name the provision and cite it.
+7. quickRevisionPointers: each pointer must be usable at 6 AM on exam day — sharp, one-line, memorable.
+8. Do not pad. Every sentence must earn its place.
 
-ICAI EXAM PHILOSOPHY YOU MUST APPLY:
-1. ICAI rewards structured, point-wise answers — never prose-heavy answers
-2. Key terms must be bolded and precise (e.g., "recognised", "derecognised", "contingent liability")
-3. Practical examples always outperform theory-only answers
-4. Section references matter: cite relevant Sections, Standards, Rules, Circulars
-5. Common student errors are exactly what examiners look for — address them
-6. MCQs test application, not memory — make them scenario-based
-7. Descriptive questions mirror past paper patterns (May/Nov attempts)
-
-CONTENT ACCURACY RULES:
-- All content must align with ICAI 2026 new syllabus (applicable for Foundation/Inter/Final)
-- Cite correct Standards: Ind AS / AS / IFRS as applicable
-- For Taxation: apply latest Finance Act provisions, CGST Act, Income Tax Act
-- For Law: Companies Act 2013, LLP Act, FEMA, SEBI regulations
-- For Audit: SA (Standards on Auditing) references are mandatory
-- For SFM/FM: use current SEBI regulations, RBI guidelines
-- For SCMPE: apply latest CMA concepts and transfer pricing rules
-- Numbers, rates, thresholds must be current (AY 2025-26 / FY 2024-25)
-
-OUTPUT FORMAT — Return ONLY valid JSON with EXACTLY these keys:
+OUTPUT FORMAT — return ONLY valid JSON matching this exact structure. No markdown, no preamble, no explanation.
 
 {
-  "topicSummary": "One crisp sentence: what this topic is and why it matters in exams",
-  "examRelevance": "HIGH/MEDIUM — papers it appears in, marks weightage, frequency (e.g., 'HIGH — FR Paper 1, 8-12 marks, appears in 90% of attempts')",
-  "revisionNotes": "Comprehensive but scannable revision notes. Use this EXACT format:
-    ## Core Concept
-    [2-3 sentences defining the topic precisely]
-    
-    ## Key Definitions / Terms
-    • **Term 1**: Definition with section reference
-    • **Term 2**: Definition
-    
-    ## Legal/Standard Framework  
-    [Applicable Act/Standard/Rule with section numbers]
-    
-    ## Recognition / Applicability Criteria
-    [Numbered conditions that MUST be met]
-    
-    ## Measurement / Calculation Method
-    [Step-by-step with formula if applicable]
-    
-    ## Important Exceptions / Provisos
-    [Critical exceptions that examiners test]
-    
-    ## Practical Illustration
-    [A realistic numerical or scenario example with workings]
-    
-    ## Key Examiner-Favourite Points
-    [3-4 bullet points that frequently appear in model answers]",
-  
+  "examRelevance": {
+    "paperAndPart": "e.g. Paper 1: Financial Reporting — Group 1",
+    "frequency": "e.g. Appeared in 7 out of last 10 attempts",
+    "typicalMarks": "e.g. 8–10 marks (theory + illustration) or 2-mark MCQ",
+    "lastAppeared": "e.g. Nov 2024 — Q4(b), 8 marks, revaluation of PPE",
+    "prediction": "e.g. HIGH — topic not tested in May 2024, due in Nov 2025"
+  },
+
+  "revisionNotes": {
+    "coreConcept": "One clear paragraph. What this topic is, why it exists, what problem it solves. Plain English.",
+    "mustKnowDefinition": "Exact statutory definition in quotes. Source in square brackets at the end: [Ind AS X.Y / Section Z / Rule N]",
+    "recognitionCriteria": [
+      "Criterion 1 — exact wording ICAI expects, with standard reference",
+      "Criterion 2",
+      "Criterion 3"
+    ],
+    "measurementRule": "How to measure or calculate. Include the formula on its own line. Define every variable.",
+    "workedExample": "Complete numerical with realistic numbers. Show every step. Include journal entries where applicable. Format as a worked solution.",
+    "keyExceptions": [
+      "Exception 1: [condition] — [what changes] [Standard ref]",
+      "Exception 2"
+    ],
+    "examinerFavouritePoints": [
+      "The point that appears in every model answer for this topic",
+      "The comparison or distinction ICAI loves to test",
+      "The disclosure requirement most students forget"
+    ]
+  },
+
   "mcqs": [
     {
-      "question": "Scenario-based question testing application (never pure memory)",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "answer": "Option X",
-      "explanation": "Why this is correct + why the other options are wrong (common traps explained)",
-      "difficulty": "Easy/Medium/Hard",
-      "examTip": "Key concept this tests"
+      "scenario": "One sentence: company name, transaction type, specific rupee amount, date.",
+      "question": "Full MCQ question exactly as ICAI would phrase it.",
+      "options": ["Option A with specific value", "Option B with specific value", "Option C with specific value", "Option D with specific value"],
+      "correctAnswer": "Letter and full text e.g. A — ₹5,00,000",
+      "correctAnswerExplanation": "Step-by-step reason. Cite the provision. Show calculation if numerical.",
+      "whyCorrect": "Same as correctAnswerExplanation — step-by-step with provision cited.",
+      "wrongAnswerTrap": "Why the most common wrong option is picked and what misconception causes it.",
+      "whyOthersWrong": "Same as wrongAnswerTrap.",
+      "difficulty": "Easy or Medium or Hard",
+      "conceptTested": "The specific provision or principle this MCQ tests.",
+      "thisTestsYourUnderstandingOf": "Same as conceptTested."
     }
-    // MINIMUM 8, MAXIMUM 10 MCQs
   ],
-  
+
   "descriptiveQuestions": [
     {
-      "question": "Exact ICAI-style question with marks allocation e.g., '(8 Marks — Nov 2024 Pattern)'",
+      "question": "Full question exactly as ICAI would write it, including marks in brackets.",
+      "exactQuestion": "Same as question field.",
       "marks": 8,
-      "modelAnswer": "PERFECTLY structured ICAI answer:
-        **Answer:**
-        [Opening definition or context — 1 sentence]
-        
-        **[Heading 1]:**
-        1. Point one with explanation
-        2. Point two with explanation
-        
-        **[Heading 2]:**
-        [Tabular format where applicable]
-        
-        **Conclusion/Computation:**
-        [Final answer or working note]",
-      "answerTips": "What the examiner's marking scheme rewards here",
-      "timeAllocation": "How many minutes to spend"
+      "suggestedTime": "10 minutes",
+      "timeToSpend": "Same as suggestedTime.",
+      "openingLine": "The exact first sentence to write in the exam hall.",
+      "openingLineToWrite": "Same as openingLine.",
+      "modelAnswer": "Complete answer in ICAI format. Start with the relevant provision and citation. State recognition or applicability criteria as numbered points. Apply to the facts. State a clear conclusion. Include Working Note if numerical. Write the actual full answer here.",
+      "markingBreakdown": "1 mark: definition | 2 marks: criteria | 3 marks: application | 2 marks: working note",
+      "markingSchemeHints": "Same as markingBreakdown.",
+      "bonusPoint": "One point that distinguishes an above-average answer — a disclosure, a comparison, or a nuance most students miss."
     }
-    // MINIMUM 4, MAXIMUM 6 questions
   ],
-  
+
   "commonMistakes": [
-    // MINIMUM 6 mistakes — specific, not generic
-    "❌ MISTAKE: [Exact wrong thing students write] → ✅ CORRECT: [What to write instead]"
+    {
+      "wrongAnswer": "The exact wrong thing 60% of students write — quote it directly.",
+      "mistake": "Same as wrongAnswer.",
+      "whyStudentsWriteThis": "The specific misconception or trap in the question wording that causes this mistake.",
+      "whyItHappens": "Same as whyStudentsWriteThis.",
+      "correctAnswer": "The exact correct thing to write instead — quote it directly.",
+      "correction": "Same as correctAnswer.",
+      "standardReference": "The provision that settles this — cite it with section or standard number.",
+      "marksImpact": "e.g. Loses 2 marks — checker marks Step 2 wrong which cascades.",
+      "marksLost": "Same as marksImpact."
+    }
   ],
-  
-  "answerWritingApproach": "ICAI-specific answer writing strategy:
-    ## Structure Template
-    [Exact format to follow]
-    
-    ## Opening Line Formula  
-    [How to start answers on this topic]
-    
-    ## Marks Distribution Strategy
-    [How to allocate time/effort per sub-part]
-    
-    ## Presentation Tips
-    [Tables, workings, format preferences]
-    
-    ## What Gets You Extra Marks
-    [Beyond-syllabus points that impress examiners]",
-  
-  "howTopicIsTested": "## Past Paper Analysis
-    [Specific mention of how this appeared in recent attempts]
-    
-    ## Question Formats Used
-    [MCQ / Short / Long / Case-study / Practical]
-    
-    ## Marks Typically Allocated
-    [Range and frequency]
-    
-    ## Examiner Preferences
-    [What the ICAI examiners specifically reward]
-    
-    ## Prediction for Next Attempt
-    [High/Medium/Low probability and likely angle]",
-  
-  "keyFocusAreas": "## Guaranteed High-Yield Areas (Study These First)
-    1. [Area 1 with why it's important]
-    2. [Area 2]
-    
-    ## Connect to Other Topics
-    [How this topic links to other chapters — important for integrated questions]
-    
-    ## Numerical vs Theoretical Split
-    [What percentage is calculation-based vs theory]
-    
-    ## Last 48 Hours Focus
-    [If you have only 2 days, focus on exactly THIS]",
-  
+
+  "answerWritingApproach": {
+    "openingTemplate": "The exact template for the first line. Example: 'As per [Standard/Section], [topic] is defined as...'",
+    "openingFormula": "Same as openingTemplate.",
+    "structure": [
+      "Step 1: [what to write first and why]",
+      "Step 2: [what to write next]",
+      "Step 3: [how to present the calculation or application]",
+      "Step 4: [how to conclude]"
+    ],
+    "structureToFollow": "Step 1: [what to write first]. Step 2: [next]. Step 3: [application]. Step 4: [conclusion].",
+    "checkerLooksFor": [
+      "The exact phrase or heading the checker ticks",
+      "The numerical format that earns presentation marks",
+      "The conclusion statement that confirms the student applied the provision"
+    ],
+    "whatCheckerLooksFor": "The 3 things that determine marks: [1] definition with citation [2] criteria as numbered points [3] correct application with working note.",
+    "timeBreakdown": "e.g. 2 min reading + 3 min theory + 5 min working note + 1 min conclusion",
+    "timeAllocation": "Same as timeBreakdown.",
+    "presentationFormat": "Table / journal entry / numbered list / prose — specify which and why for this topic.",
+    "presentationTips": "Same as presentationFormat."
+  },
+
+  "howTopicIsTested": {
+    "examPattern": [
+      "May 2024 — Q3(a), 10 marks: asked for treatment of borrowing costs during construction",
+      "Nov 2023 — MCQ, 2 marks: tested the capitalisation rate formula"
+    ],
+    "pastPaperPattern": "Specific appearances: May 2024 Q3(a) 10 marks — borrowing costs; Nov 2023 MCQ 2 marks — capitalisation rate.",
+    "icaiAngle": "The specific angle ICAI always approaches this topic from. What the question is really testing.",
+    "angleAlwaysTaken": "Same as icaiAngle.",
+    "neverTested": "What you can safely skip — the part ICAI has never asked in 10 years.",
+    "neverAsked": "Same as neverTested.",
+    "questionTrick": "How the question is typically worded to mislead. The exact phrase to watch for.",
+    "trickInQuestion": "Same as questionTrick."
+  },
+
+  "keyFocusAreas": {
+    "highYieldAreas": [
+      "Area 1 — accounts for ~40% of marks on this topic",
+      "Area 2 — always appears as MCQ or part of a larger question",
+      "Area 3 — most likely angle for the current attempt"
+    ],
+    "highYield": ["Same as highYieldAreas item 1", "Item 2", "Item 3"],
+    "ifOnly2DaysLeft": "Study exactly this and nothing else: [specific sub-topics, provisions, and one worked example].",
+    "linkedTopics": "This topic integrates with [Topic X] and [Topic Y]. Expect a combined question.",
+    "linkToOtherTopics": "Same as linkedTopics.",
+    "numericalVsTheory": "e.g. 70% marks come from numerical application, 30% from stating provisions."
+  },
+
   "quickRevisionPointers": [
-    // MINIMUM 12, MAXIMUM 15 pointers
-    // Format: "🔑 [Keyword/concept]: [One-line memory trigger]"
-    "🔑 [Term]: [Sharp, memorable one-liner]"
+    "DEFINITION — [topic]: [one-line definition with source]",
+    "CRITERIA — Recognition requires: [list conditions in 10 words]",
+    "FORMULA — [name]: [formula] where [variable definitions]",
+    "TRAP — Students confuse [X] with [Y]: [one-line distinction]",
+    "EXCEPTION — [condition]: [what changes]",
+    "EXAM HACK — Write this phrase to get marks: [exact phrase]",
+    "LINK — Connects to [topic]: [one-line reason]",
+    "LAST SEEN — [Attempt]: [what was asked]",
+    "HIGH YIELD — [the sub-area most likely to appear]",
+    "RATE/LIMIT — [specific number or threshold to memorise]",
+    "DISCLOSURE — [the requirement most students forget]",
+    "OPENER — Start every answer with: [exact phrase]"
+  ],
+
+  "formulaSheet": {
+    "formulas": [
+      {
+        "name": "Formula name",
+        "formula": "The formula exactly as written",
+        "variables": "Define each variable clearly",
+        "example": "Worked example with numbers: e.g. = 5,00,000 × 8% × 6/12 = ₹20,000"
+      }
+    ],
+    "keyRates": [
+      "Rate or limit 1 — what it applies to [AY or standard reference]",
+      "Rate or limit 2"
+    ],
+    "mnemonics": [
+      "MNEMONIC for remembering criteria or conditions"
+    ]
+  },
+
+  "lastMinuteTips": [
+    "If you run out of time: write [specific minimum] — partial credit is guaranteed for stating the provision",
+    "If you blank out: write the definition with the standard reference first — marks flow from there",
+    "Most common silly mistake on this topic: [exactly what it is] — avoid it by [what to do instead]",
+    "One line that always impresses the checker: [specific sentence]"
   ]
 }
 
-QUALITY STANDARDS:
-✓ Every MCQ must be scenario-based (not "What is the definition of X?")  
-✓ Model answers must be markable — structured exactly how ICAI expects
-✓ Common mistakes must be SPECIFIC to this topic, not generic advice
-✓ Quick revision pointers must be memorable, sharp, exam-day usable
-✓ Revision notes must be COMPREHENSIVE enough to replace textbook chapter
-✓ All section/standard references must be accurate
+Return ONLY valid JSON. No markdown code fences. No text before or after the JSON object.`;
 
-NEVER:
-✗ Return generic advice like "read the textbook"
-✗ Use vague language — be precise and specific
-✗ Forget to cite relevant standards/acts/rules
-✗ Make MCQs that test pure memorization
-✗ Skip the practical illustration in revision notes
-✗ Return fewer items than the minimum specified
+// ─── Zod Schemas ─────────────────────────────────────────────────────────────
 
-Return ONLY the JSON object. No markdown code blocks. No preamble. No explanation.`;
+const examRelevanceSchema = z.object({
+  paperAndPart: z.string().default(""),
+  frequency: z.string().default(""),
+  typicalMarks: z.string().default(""),
+  lastAppeared: z.string().default(""),
+  prediction: z.string().default(""),
+});
+
+const revisionNotesSchema = z.object({
+  coreConcept: z.string().default(""),
+  mustKnowDefinition: z.string().default(""),
+  recognitionCriteria: z.array(z.string()).default([]),
+  measurementRule: z.string().default(""),
+  workedExample: z.string().default(""),
+  keyExceptions: z.array(z.string()).default([]),
+  examinerFavouritePoints: z.array(z.string()).default([]),
+});
 
 const mcqSchema = z.object({
-  question: z.string().min(10),
+  scenario: z.string().default(""),
+  question: z.string().default(""),
   options: z.tuple([z.string(), z.string(), z.string(), z.string()]),
-  answer: z.string(),
-  explanation: z.string(),
+  correctAnswer: z.string().default(""),
+  correctAnswerExplanation: z.string().default(""),
+  whyCorrect: z.string().default(""),
+  wrongAnswerTrap: z.string().default(""),
+  whyOthersWrong: z.string().default(""),
   difficulty: z.enum(["Easy", "Medium", "Hard"]).default("Medium"),
-  examTip: z.string().default(""),
+  conceptTested: z.string().default(""),
+  thisTestsYourUnderstandingOf: z.string().default(""),
 });
 
 const descriptiveSchema = z.object({
-  question: z.string().min(10),
+  question: z.string().default(""),
+  exactQuestion: z.string().default(""),
   marks: z.number().min(2).max(20).default(8),
-  modelAnswer: z.string().min(50),
-  answerTips: z.string().default(""),
-  timeAllocation: z.string().default("8-10 minutes"),
+  suggestedTime: z.string().default("10 minutes"),
+  timeToSpend: z.string().default("10 minutes"),
+  openingLine: z.string().default(""),
+  openingLineToWrite: z.string().default(""),
+  modelAnswer: z.string().default(""),
+  markingBreakdown: z.string().default(""),
+  markingSchemeHints: z.string().default(""),
+  bonusPoint: z.string().default(""),
+});
+
+const commonMistakeSchema = z.object({
+  wrongAnswer: z.string().default(""),
+  mistake: z.string().default(""),
+  whyStudentsWriteThis: z.string().default(""),
+  whyItHappens: z.string().default(""),
+  correctAnswer: z.string().default(""),
+  correction: z.string().default(""),
+  standardReference: z.string().default(""),
+  marksImpact: z.string().default(""),
+  marksLost: z.string().default(""),
+});
+
+const answerWritingApproachSchema = z.object({
+  openingTemplate: z.string().default(""),
+  openingFormula: z.string().default(""),
+  structure: z.array(z.string()).default([]),
+  structureToFollow: z.string().default(""),
+  checkerLooksFor: z.array(z.string()).default([]),
+  whatCheckerLooksFor: z.string().default(""),
+  timeBreakdown: z.string().default(""),
+  timeAllocation: z.string().default(""),
+  presentationFormat: z.string().default(""),
+  presentationTips: z.string().default(""),
+});
+
+const howTopicIsTestedSchema = z.object({
+  examPattern: z.array(z.string()).default([]),
+  pastPaperPattern: z.string().default(""),
+  icaiAngle: z.string().default(""),
+  angleAlwaysTaken: z.string().default(""),
+  neverTested: z.string().default(""),
+  neverAsked: z.string().default(""),
+  questionTrick: z.string().default(""),
+  trickInQuestion: z.string().default(""),
+});
+
+const keyFocusAreasSchema = z.object({
+  highYieldAreas: z.array(z.string()).default([]),
+  highYield: z.union([z.array(z.string()), z.string()]).default([]),
+  ifOnly2DaysLeft: z.string().default(""),
+  linkedTopics: z.string().default(""),
+  linkToOtherTopics: z.string().default(""),
+  numericalVsTheory: z.string().default(""),
+});
+
+const formulaItemSchema = z.object({
+  name: z.string().default(""),
+  formula: z.string().default(""),
+  variables: z.string().default(""),
+  example: z.string().default(""),
+});
+
+const formulaSheetSchema = z.object({
+  formulas: z.array(formulaItemSchema).default([]),
+  keyRates: z.array(z.string()).default([]),
+  mnemonics: z.array(z.string()).default([]),
 });
 
 export const outputSchema = z.object({
-  topicSummary: z.string().default(""),
-  examRelevance: z.string().default(""),
-  revisionNotes: z.string().min(200),
-  mcqs: z.array(mcqSchema).min(5).max(10),
-  descriptiveQuestions: z.array(descriptiveSchema).min(3).max(7),
-  commonMistakes: z.array(z.string()).min(4),
-  answerWritingApproach: z.string().min(50),
-  howTopicIsTested: z.string().min(50),
-  keyFocusAreas: z.string().min(50),
-  quickRevisionPointers: z.array(z.string()).min(8).max(15),
+  personalNote: z.string().default(""),
+  examRelevance: examRelevanceSchema,
+  revisionNotes: revisionNotesSchema,
+  mcqs: z.array(mcqSchema).default([]),
+  descriptiveQuestions: z.array(descriptiveSchema).default([]),
+  commonMistakes: z.array(commonMistakeSchema).default([]),
+  answerWritingApproach: answerWritingApproachSchema,
+  howTopicIsTested: howTopicIsTestedSchema,
+  keyFocusAreas: keyFocusAreasSchema,
+  quickRevisionPointers: z.array(z.string()).default([]),
+  formulaSheet: formulaSheetSchema,
+  lastMinuteTips: z.array(z.string()).default([]),
 });
+
+// ─── Generator ───────────────────────────────────────────────────────────────
 
 export async function generateRevisionPackage({
   topic,
@@ -206,12 +315,14 @@ export async function generateRevisionPackage({
   promptTweak,
   caLevel,
   paper,
+  attemptMonth,
 }: {
   topic: string;
   notesText?: string;
   promptTweak?: string;
   caLevel?: string;
   paper?: string;
+  attemptMonth?: "May" | "Nov";
 }): Promise<RevisionPackage> {
   const client = new OpenAI({
     apiKey: process.env.GROQ_API_KEY ?? process.env.OPENAI_API_KEY,
@@ -219,65 +330,70 @@ export async function generateRevisionPackage({
   });
 
   const contextParts: string[] = [];
-
   if (caLevel) contextParts.push(`CA Level: ${caLevel}`);
   if (paper) contextParts.push(`Paper/Subject: ${paper}`);
+  if (attemptMonth) contextParts.push(`Attempt: ${attemptMonth} 2026`);
   contextParts.push(`Topic: ${topic}`);
 
-  if (notesText && notesText.trim()) {
-    contextParts.push(`\nStudent's Uploaded Notes (use these to enrich and personalise the package):\n${notesText.slice(0, 12000)}`);
+  if (notesText?.trim()) {
+    contextParts.push(
+      `\nStudent's Uploaded Notes — use these to personalise the package:\n${notesText.slice(0, 12000)}`
+    );
   }
-
   if (promptTweak) {
     contextParts.push(`\nSpecial Instructions: ${promptTweak}`);
   }
-
-  contextParts.push(`
-GENERATE NOW. Return only the JSON object.
-The package must be 100% accurate, syllabus-aligned, and exam-ready.
-A student's exam marks depend on this — make it perfect.`);
+  contextParts.push(`\nReturn ONLY valid JSON. No markdown. No explanation.`);
 
   const userPrompt = contextParts.join("\n");
 
-  const response = await client.chat.completions.create({
-    model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
-    messages: [
-      { role: "system", content: REVISE_CA_SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
-    ],
-    temperature: 0.4, // Lower temp = more accurate, consistent output
-    max_tokens: 8000,
-  });
+  const maxRetries = 2;
+  let lastError: Error | null = null;
 
-  const rawContent = response.choices[0]?.message?.content;
-  if (!rawContent) throw new Error("No response from AI model. Please try again.");
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await client.chat.completions.create({
+        model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: REVISE_CA_SYSTEM_PROMPT },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 4000,
+        response_format: { type: "json_object" },
+      });
 
-  // Robust JSON extraction
-  let jsonText = rawContent.trim();
+      const rawContent = response.choices[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI model. Please try again.");
 
-  // Remove markdown code fences if present
-  const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) jsonText = fenceMatch[1].trim();
+      let jsonText = rawContent.trim();
 
-  // Find first { and last } to extract JSON object
-  const start = jsonText.indexOf("{");
-  const end = jsonText.lastIndexOf("}");
-  if (start !== -1 && end !== -1) {
-    jsonText = jsonText.slice(start, end + 1);
+      const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenceMatch) jsonText = fenceMatch[1].trim();
+
+      const start = jsonText.indexOf("{");
+      const end = jsonText.lastIndexOf("}");
+      if (start !== -1 && end !== -1) jsonText = jsonText.slice(start, end + 1);
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch {
+        jsonText = jsonText
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
+          .replace(/,\s*}/g, "}")
+          .replace(/,\s*]/g, "]");
+        parsed = JSON.parse(jsonText);
+      }
+
+      return outputSchema.parse(parsed) as RevisionPackage;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(`Generation attempt ${attempt + 1} failed:`, lastError.message);
+      if (attempt < maxRetries) continue;
+      throw lastError;
+    }
   }
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(jsonText);
-  } catch {
-    // Try to fix common JSON issues
-    jsonText = jsonText
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ") // control chars
-      .replace(/,\s*}/g, "}") // trailing commas
-      .replace(/,\s*]/g, "]");
-    parsed = JSON.parse(jsonText);
-  }
-
-  const validated = outputSchema.parse(parsed);
-  return validated;
+  throw lastError ?? new Error("Generation failed.");
 }

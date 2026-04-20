@@ -15,7 +15,8 @@ export async function canGenerate(userId: string) {
       return { allowed: true, remaining: -1, isPaid: true, plan: "owner" };
     }
   } catch (e) {
-    console.error("Error checking premium user:", e);
+    // Clerk API failed - continue with free tier check instead of crashing
+    console.error("Error checking premium user (falling back to free tier):", e);
   }
 
   const supabase = getSupabaseAdmin();

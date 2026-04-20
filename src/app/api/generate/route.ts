@@ -31,6 +31,8 @@ export async function POST(req: Request) {
     const promptTweak = String(formData.get("promptTweak") ?? "").trim();
     const caLevel = String(formData.get("caLevel") ?? "").trim();
     const paper = String(formData.get("paper") ?? "").trim();
+    const attemptMonthRaw = String(formData.get("attemptMonth") ?? "").trim();
+    const attemptMonth = attemptMonthRaw === "May" || attemptMonthRaw === "Nov" ? attemptMonthRaw : undefined;
     const file = formData.get("file");
 
     if (!topic && !(file instanceof File && file.size > 0)) {
@@ -57,6 +59,7 @@ export async function POST(req: Request) {
       promptTweak: promptTweak || undefined,
       caLevel: caLevel || undefined,
       paper: paper || undefined,
+      attemptMonth,
     });
 
     const supabase = getSupabaseAdmin();
@@ -85,10 +88,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ revisionId: inserted.id, data, topic: effectiveTopic });
   } catch (error) {
     console.error("Generation error:", error);
+    
+    let errorMessage = "An unexpected error occurred. Please try again.";
+    
+    if (error instanceof Error) {
+      if (error.message.includes("JSON")) {
+        errorMessage = "The AI returned an invalid response. This sometimes happens with complex topics. Please try again with a simpler or more specific topic.";
+      } else if (error.message.includes("rate limit") || error.message.includes("429")) {
+        errorMessage = "Server is busy. Please wait a moment and try again.";
+      } else if (error.message.includes("timeout")) {
+        errorMessage = "The request took too long. Please try a shorter topic.";
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return NextResponse.json(
       {
         error: "Generation failed",
-        message: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
+        message: errorMessage,
       },
       { status: 500 },
     );
