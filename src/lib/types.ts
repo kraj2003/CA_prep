@@ -1,14 +1,12 @@
-// types.ts
-
-export interface ExamRelevance {
-  paperAndPart: string;
+export type ExamRelevance = {
   frequency: string;
   typicalMarks: string;
   lastAppeared: string;
   prediction: string;
-}
+  paperAndPart: string;
+};
 
-export interface RevisionNotes {
+export type RevisionNotes = {
   coreConcept: string;
   mustKnowDefinition: string;
   recognitionCriteria: string[];
@@ -16,124 +14,85 @@ export interface RevisionNotes {
   workedExample: string;
   keyExceptions: string[];
   examinerFavouritePoints: string[];
-}
+};
 
-export interface MCQ {
+export type Mcq = {
   scenario: string;
   question: string;
   options: [string, string, string, string];
   correctAnswer: string;
-  // new
-  correctAnswerExplanation: string;
-  wrongAnswerTrap: string;
-  // legacy (generation-form uses these)
   whyCorrect: string;
   whyOthersWrong: string;
   difficulty: "Easy" | "Medium" | "Hard";
-  conceptTested: string;
-  // legacy
   thisTestsYourUnderstandingOf: string;
-}
+};
 
-export interface DescriptiveQuestion {
-  // new
-  question: string;
-  marks: number;
-  suggestedTime: string;
-  openingLine: string;
-  modelAnswer: string;
-  markingBreakdown: string;
-  bonusPoint: string;
-  // legacy (generation-form uses these)
+export type DescriptiveQuestion = {
   exactQuestion: string;
+  marks: number;
   timeToSpend: string;
   openingLineToWrite: string;
+  modelAnswer: string;
   markingSchemeHints: string;
-}
+  bonusPoint: string;
+};
 
-export interface CommonMistake {
-  // new
-  wrongAnswer: string;
-  whyStudentsWriteThis: string;
-  correctAnswer: string;
-  standardReference: string;
-  marksImpact: string;
-  // legacy (generation-form uses these)
+export type CommonMistake = {
   mistake: string;
   whyItHappens: string;
   correction: string;
   marksLost: string;
-}
+};
 
-export interface AnswerWritingApproach {
-  // new
-  openingTemplate: string;
-  structure: string[];
-  checkerLooksFor: string[];
-  timeBreakdown: string;
-  presentationFormat: string;
-  // legacy (generation-form uses these)
+export type AnswerWritingApproach = {
   openingFormula: string;
   structureToFollow: string;
   whatCheckerLooksFor: string;
   timeAllocation: string;
   presentationTips: string;
-}
+};
 
-export interface HowTopicIsTested {
-  // new
-  examPattern: string[];
-  icaiAngle: string;
-  neverTested: string;
-  questionTrick: string;
-  // legacy (generation-form uses these)
+export type HowTopicIsTested = {
   pastPaperPattern: string;
   angleAlwaysTaken: string;
   neverAsked: string;
   trickInQuestion: string;
-}
+};
 
-export interface KeyFocusAreas {
-  // new
-  highYieldAreas: string[];
-  ifOnly2DaysLeft: string;
-  linkedTopics: string;
-  numericalVsTheory: string;
-  // legacy (generation-form uses these)
+export type KeyFocusAreas = {
   highYield: string[] | string;
+  ifOnly2DaysLeft: string;
   linkToOtherTopics: string;
-}
+  numericalVsTheory: string;
+};
 
-export interface FormulaItem {
-  name: string;
-  formula: string;
-  variables: string;
-  example: string;
-}
-
-export interface FormulaSheet {
-  formulas: FormulaItem[];
-  keyRates: string[];
-  mnemonics: string[];
-}
-
-export interface RevisionPackage {
-  personalNote?: string; // kept — generation-form ResultHeader uses this
+export type RevisionPackage = {
+  personalNote: string;
   examRelevance: ExamRelevance;
   revisionNotes: RevisionNotes;
-  mcqs: MCQ[];
+  mcqs: Mcq[];
   descriptiveQuestions: DescriptiveQuestion[];
   commonMistakes: CommonMistake[];
   answerWritingApproach: AnswerWritingApproach;
   howTopicIsTested: HowTopicIsTested;
   keyFocusAreas: KeyFocusAreas;
   quickRevisionPointers: string[];
-  formulaSheet: FormulaSheet;
+  formulaSheet: string;
   lastMinuteTips: string[];
-}
+};
 
-export interface GenerateResponse {
+export type RevisionRecord = {
+  id: string;
+  user_id: string;
   topic: string;
-  revisionId?: string;
+  source_text: string | null;
+  package_json: RevisionPackage;
+  created_at: string;
+  is_revised: boolean;
+};
+
+export type GenerateResponse = {
+  revisionId: string;
   data: RevisionPackage;
-}
+  topic: string;
+};
