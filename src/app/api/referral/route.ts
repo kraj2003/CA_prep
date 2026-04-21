@@ -112,8 +112,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: rc.plan_type === "lifetime" 
-        ? "Lifetime premium unlocked!" 
+      message: rc.plan_type === "lifetime"
+        ? "Lifetime premium unlocked!"
         : "Pro plan activated! Unlimited generations unlocked.",
       plan: rc.plan_type === "lifetime" ? "lifetime" : "pro",
     });
@@ -124,7 +124,17 @@ export async function POST(req: Request) {
   }
 }
 
-// GET endpoint to check code validity (without redeeming)
+// ─── GET: validate a code without redeeming ───────────────────────────────────
+// FIX: was using Partial<ReferralCode> which made uses_count and max_uses
+// possibly-undefined, causing TS errors on the comparison and arithmetic.
+// Now uses Pick<ReferralCode, ...> so only the selected columns are in the
+// type — all as their real non-optional types.
+
+type ReferralCodePreview = Pick<
+  ReferralCode,
+  "code" | "description" | "plan_type" | "max_uses" | "uses_count" | "is_active" | "expires_at"
+>;
+
 export async function GET(req: Request) {
   const { userId } = await auth();
   if (!userId) {
@@ -149,9 +159,9 @@ export async function GET(req: Request) {
     .maybeSingle();
 
   if (existingRedemption) {
-    return NextResponse.json({ 
-      valid: false, 
-      message: "You have already redeemed a referral code" 
+    return NextResponse.json({
+      valid: false,
+      message: "You have already redeemed a referral code",
     });
   }
 
@@ -166,8 +176,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ valid: false, message: "Invalid referral code" });
   }
 
-  const rc = referralCode as Partial<ReferralCode>;
-  
+  // FIX: cast to Pick type — every field here is a real column that was
+  // explicitly selected, so none of them can actually be undefined at runtime.
+  // Partial<ReferralCode> was wrong because it made required fields optional.
+  const rc = referralCode as ReferralCodePreview;
+
   if (!rc.is_active) {
     return NextResponse.json({ valid: false, message: "This code has been deactivated" });
   }
@@ -176,6 +189,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ valid: false, message: "This code has expired" });
   }
 
+  // FIX: rc.max_uses is number | null (not undefined), rc.uses_count is number
+  // (not undefined) — both comparisons are now type-safe.
   if (rc.max_uses !== null && rc.uses_count >= rc.max_uses) {
     return NextResponse.json({ valid: false, message: "This code has reached its usage limit" });
   }

@@ -688,7 +688,7 @@ function PackageHeader({
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-4 border-t border-white/[0.05]" style={{ divideColor: "rgba(255,255,255,0.04)" }}>
+      <div className="grid grid-cols-4 border-t border-white/[0.05] divide-x divide-white/[0.04]">
         {[
           { n: pkg.mcqs.length,                   l: "MCQs"      },
           { n: pkg.descriptiveQuestions.length,   l: "Questions" },

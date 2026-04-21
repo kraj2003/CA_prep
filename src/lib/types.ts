@@ -1,85 +1,42 @@
-export type ExamRelevance = {
-  frequency: string;
-  typicalMarks: string;
-  lastAppeared: string;
-  prediction: string;
-  paperAndPart: string;
-};
-
-export type RevisionNotes = {
-  coreConcept: string;
-  mustKnowDefinition: string;
-  recognitionCriteria: string[];
-  measurementRule: string;
-  workedExample: string;
-  keyExceptions: string[];
-  examinerFavouritePoints: string[];
-};
+// ─── Primitive building blocks ────────────────────────────────────────────────
+// These types mirror the Zod schemas in src/lib/ai.ts (outputSchema,
+// mcqSchema, descriptiveSchema) exactly.  Every component that reads
+// a RevisionPackage uses the field names defined here, so keep them
+// in sync with the AI prompt output.
 
 export type Mcq = {
-  scenario: string;
   question: string;
   options: [string, string, string, string];
-  correctAnswer: string;
-  whyCorrect: string;
-  whyOthersWrong: string;
+  answer: string;       // e.g. "A. ₹48.55 lakhs"
+  explanation: string;
   difficulty: "Easy" | "Medium" | "Hard";
-  thisTestsYourUnderstandingOf: string;
+  examTip: string;
 };
 
 export type DescriptiveQuestion = {
-  exactQuestion: string;
+  question: string;
   marks: number;
-  timeToSpend: string;
-  openingLineToWrite: string;
   modelAnswer: string;
-  markingSchemeHints: string;
-  bonusPoint: string;
-};
-
-export type CommonMistake = {
-  mistake: string;
-  whyItHappens: string;
-  correction: string;
-  marksLost: string;
-};
-
-export type AnswerWritingApproach = {
-  openingFormula: string;
-  structureToFollow: string;
-  whatCheckerLooksFor: string;
+  answerTips: string;
   timeAllocation: string;
-  presentationTips: string;
 };
 
-export type HowTopicIsTested = {
-  pastPaperPattern: string;
-  angleAlwaysTaken: string;
-  neverAsked: string;
-  trickInQuestion: string;
-};
-
-export type KeyFocusAreas = {
-  highYield: string[] | string;
-  ifOnly2DaysLeft: string;
-  linkToOtherTopics: string;
-  numericalVsTheory: string;
-};
+// ─── Top-level package ────────────────────────────────────────────────────────
 
 export type RevisionPackage = {
-  personalNote: string;
-  examRelevance: ExamRelevance;
-  revisionNotes: RevisionNotes;
+  topicSummary: string;
+  examRelevance: string;
+  revisionNotes: string;
   mcqs: Mcq[];
   descriptiveQuestions: DescriptiveQuestion[];
-  commonMistakes: CommonMistake[];
-  answerWritingApproach: AnswerWritingApproach;
-  howTopicIsTested: HowTopicIsTested;
-  keyFocusAreas: KeyFocusAreas;
-  quickRevisionPointers: string[];
-  formulaSheet: string;
-  lastMinuteTips: string[];
+  commonMistakes: string[];          // "❌ wrong → ✅ right" strings
+  answerWritingApproach: string;
+  howTopicIsTested: string;
+  keyFocusAreas: string;
+  quickRevisionPointers: string[];   // "🔑 Key: Description" strings
 };
+
+// ─── Database record ──────────────────────────────────────────────────────────
 
 export type RevisionRecord = {
   id: string;
@@ -91,8 +48,11 @@ export type RevisionRecord = {
   is_revised: boolean;
 };
 
+// ─── API response shapes ──────────────────────────────────────────────────────
+
 export type GenerateResponse = {
-  revisionId: string;
+  revisionId: string | null;
   data: RevisionPackage;
   topic: string;
+  warning?: string;
 };

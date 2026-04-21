@@ -1,5 +1,6 @@
-import Stripe from "stripe";
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2025-03-31.basil",
-});
+// This file has been intentionally removed.
+// ReviseCA uses Razorpay for payments — see src/lib/razorpay.ts
+// The Stripe webhook route at src/app/api/stripe/webhook/route.ts
+// should also be deleted.
+export {};
+ 

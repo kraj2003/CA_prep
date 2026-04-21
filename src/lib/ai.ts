@@ -163,7 +163,6 @@ function normaliseNewlines(obj: Record<string, unknown>): Record<string, unknown
   const result: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (typeof v === "string") {
-      // Replace literal \n sequences in case the model escaped them twice
       result[k] = v.replace(/\\n/g, "\n").replace(/\\t/g, " ");
     } else if (Array.isArray(v)) {
       result[k] = v.map(item =>
@@ -188,12 +187,14 @@ export async function generateRevisionPackage({
   promptTweak,
   caLevel,
   paper,
+  attemptMonth,  // FIX: added to parameter type — was missing, causing TS error in generate/route.ts
 }: {
   topic: string;
   notesText?: string;
   promptTweak?: string;
   caLevel?: string;
   paper?: string;
+  attemptMonth?: "May" | "Nov";  // FIX: "May" | "Nov" | undefined — matches route.ts derivation
 }): Promise<RevisionPackage> {
 
   const client = new OpenAI({
@@ -202,8 +203,9 @@ export async function generateRevisionPackage({
   });
 
   const lines: string[] = [];
-  if (caLevel) lines.push(`CA Level: ${caLevel}`);
-  if (paper)   lines.push(`Paper: ${paper}`);
+  if (caLevel)      lines.push(`CA Level: ${caLevel}`);
+  if (paper)        lines.push(`Paper: ${paper}`);
+  if (attemptMonth) lines.push(`Target Attempt: ${attemptMonth} 2026`);  // FIX: now used in prompt
   lines.push(`Topic: ${topic}`);
 
   if (notesText?.trim()) {
