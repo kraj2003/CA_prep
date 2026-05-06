@@ -753,7 +753,7 @@ export default function Home() {
                 }}
               >
                 <SignedOut>
-                  <SignUpButton mode="modal">
+                  <SignUpButton mode="redirect">
                     <button className="group relative inline-flex items-center justify-center gap-3 bg-amber-400 hover:bg-amber-300 text-black font-black text-lg px-8 py-4 rounded-2xl shadow-2xl shadow-amber-400/30 transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:shadow-amber-400/50">
                       <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
                       Generate Free Now
@@ -1157,7 +1157,7 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <SignedOut>
-                <SignUpButton mode="modal">
+                <SignUpButton mode="redirect">
                   <button className="group relative inline-flex items-center justify-center gap-3 bg-amber-400 hover:bg-amber-300 text-black font-black text-xl px-10 py-5 rounded-2xl shadow-2xl shadow-amber-400/30 transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:shadow-amber-400/50">
                     <Sparkles className="w-6 h-6 transition-transform group-hover:rotate-12" />
                     Start Free — No Card Needed

@@ -214,12 +214,12 @@ export function SiteHeader() {
             </SignedIn>
             <SignedOut>
               <div className="space-y-2">
-                <SignInButton mode="modal">
+                <SignInButton mode="redirect">
                   <button className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white font-medium py-3 rounded-xl text-sm hover:bg-white/10 transition-all">
                     Sign In
                   </button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton mode="redirect">
                   <button className="w-full flex items-center justify-center gap-2 bg-amber-400 text-black font-bold py-3 rounded-xl text-sm hover:bg-amber-300 transition-all">
                     <Zap className="w-4 h-4" />
                     Start Free — 3 Packs/Month
